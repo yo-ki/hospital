@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+	<!-- 设置mybatis一些全局配置 -->
+	<settings>
+		<!-- 设置是否延时加载，这里为立即加载 -->
+		<setting name="lazyLoadingEnabled" value="false"/>
+	</settings>
+
+	<!-- 给pojo包下所有实体类取别名,默认为实体的类名 -->
+	<typeAliases>
+		<package name="pojo" />
+		<package name="query"/>
+	</typeAliases>
+
+</configuration>

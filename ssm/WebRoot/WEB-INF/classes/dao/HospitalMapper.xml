@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dao.HospitalMapper">
+	
+	<resultMap type="Hospital" id="HospitalMap">
+		<id column="HOSPITAL_ID" property="id"/>
+		<result column="HOSPITAL_NAME" property="name"/>
+	</resultMap>	
+	
+	<!-- 获取所有医院列表 -->
+	<select id="getHospitalList" resultType="Hospital">
+		select * from t_hospital
+	</select>
+	
+	<!-- 获取医院总数量 -->
+	<select id="getHospitalCounts" resultType="int">
+		select count(*) from t_hospital
+	</select>
+	<!-- 根据医院id查询医院详细信息 -->
+	<select id="getHospitalById" resultType="Hospital" parameterType="Integer">
+		SELECT h.* FROM t_hospital h WHERE h.id=#{id};
+	</select>
+	<!-- 分页显示列表 -->
+	<!-- <select id="findHospitalList" parameterType="ObjectPage" resultType="ObjectPage">
+		select * from t_hospital limit #{startRecode},#{page}
+	</select> -->
+	
+</mapper>

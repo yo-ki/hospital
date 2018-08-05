@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dao.DeptMapper">
+	<select id="getDeptById" resultType="Dept">
+		select * from t_dept where id = #{id}
+	</select>
+	
+	<resultMap type="Dept" id="DeptMap">
+		<id column="DEPT_ID" property="id"/>
+		<result column="DEPT_NAME" property="name"/>
+		<association property="hospital" column="HOSPITAL_ID" 
+			resultMap="dao.HospitalMapper.HospitalMap">
+		</association>
+	</resultMap>
+
+<!-- 查询所有的子科室  -->
+	<select id="getDepts" resultType="Dept">
+	select * from t_dept
+	</select>
+	<!-- 查询所有的 科室 -->
+	<select id="getDeptTypes" resultType="DeptType">
+	select * from t_dict_dept_type
+	</select>
+	<!-- 查询所有科室等级  -->
+	
+	<select id="getDeptLevels" resultType="DeptLevel">
+	select * from t_dict_dept_level
+	</select>
+	
+	<resultMap id="DeptsAndHospAndHLev" type="Dept">
+		<result property="id" column="td_id"></result>
+		<result property="name" column="td_name"></result>
+		<association property="hospital" javaType="Hospital">
+		<result property="name" column="th_name"></result>
+		<result property="phone" column="phone"></result>
+		<result property="address" column="address"></result>
+		<association property="deptLevel" javaType="DeptLevel">
+		<result property="name" column="tdh_name"></result>
+		</association>
+		</association>
+		
+	</resultMap>
+	<select id="getDeptsAndHospAndHLev" resultMap="DeptsAndHospAndHLev">
+		select td.id td_id,td.name td_name,th.name th_name,th.phone,th.address,
+		tdh.name tdh_name from t_dept td inner join t_hospital th 
+		on td.hospital_id=th.id inner join t_dict_hosp_level tdh 
+		on th.level_id=tdh.id
+	</select>
+	
+	
+	<resultMap type="Doctor" id="DoctorInfoMap">
+		<result column="SUMMURY" property="summury"/>		<!-- column查询结果 的列名，property实体类pojo对应的属性名-->
+		<result column="EXPERT" property="expert"/>
+		<result column="IMG_PATH" property="img_path"/>
+	<association property="name" javaType="DocLevel">
+		<result column="L_NAME" property="name"/>
+	</association>
+	<association property="dept" javaType="Doctor">    <!-- 类Doctor 里的属性dept -->
+		<result column="D_NAME" property="name"/>
+		<association property="hospital" javaType="Dept">
+			<result column="H_NAME" property="name"/>
+		</association>
+	</association>
+	</resultMap>
+	<select id="findDocorInfo" resultMap="DoctorInfoMap" parameterType="Integer">
+		SELECT t_hospital.`name` h_name,t_doctor.`summury`,t_doctor.`expert`,t_doctor.`img_path`,t_level.`name` l_name,t_dept.`name` d_name 
+FROM t_doctor
+	INNER JOIN t_dept ON t_doctor.`dept_id`=t_dept.`id`
+	INNER JOIN t_dict_doc_level t_level ON t_doctor.`level_id`=t_level.`id`
+	INNER JOIN t_hospital ON t_dept.`hospital_id`=t_hospital.`id`
+		WHERE t_doctor.`id`=#{id};
+	</select>
+	<!-- 通过医院Id获取医院的所有科室 -->
+	<select id="getDeptByHospitalId" parameterType="Integer" resultType="Dept">
+		SELECT * FROM t_dept WHERE hospital_id=#{hospitalId};
+	</select>
+</mapper>

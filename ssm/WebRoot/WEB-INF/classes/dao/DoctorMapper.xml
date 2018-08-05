@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dao.DoctorMapper">
+
+	<sql id="where_query">
+		<where>
+			<if test="doc_level_id != null">
+				and level.id = #{doc_level_id}
+			</if>
+			<if test="dept_type_id != null">
+				and dept_type.id = #{dept_type_id}
+			</if>
+		</where>
+	</sql>
+
+	<sql id="select_query">
+		SELECT 
+			doctor.id AS doctor_id,
+			doctor.`name` AS doctor_name,
+			level.`id` AS doc_level_id,
+			level.`name` AS doc_level_name,
+			doctor.*,
+			dept.`id` AS dept_id,dept.`name` AS dept_name,
+			hospital.`id` AS hospital_id,hospital.`name` AS hospital_name
+	</sql>
+	
+	<sql id="from_query">
+		FROM t_doctor doctor
+		INNER JOIN t_dict_doc_level `level` ON doctor.`level_id` = level.id
+		INNER JOIN t_dept dept ON doctor.`dept_id` = dept.`id`
+		INNER JOIN t_dict_dept_type `dept_type` ON dept_type.id = dept.`type_id`
+		INNER JOIN t_hospital hospital ON dept.`hospital_id` = hospital.`id`
+	</sql>
+	
+	<select id="findAllDoctor" resultMap="DoctorMap">
+		<include refid="select_query"/>
+		<include refid="from_query"/>
+	</select>
+	
+	<select id="findDoctorByDeptLevel" resultMap="DoctorMap">
+		<include refid="select_query"/>
+		<include refid="from_query"/>
+		<include refid="where_query"/>
+	</select>
+	
+	<select id="getTotalRecordByDeptLevel" resultType="java.lang.Integer">
+		select count(0)
+		<include refid="from_query"/>
+		<include refid="where_query"/>
+	</select>
+	
+	<select id="findDoctorByDeptLevelPage" resultMap="DoctorMap">
+		<include refid="select_query"/>
+		<include refid="from_query"/>
+		<include refid="where_query"/>
+		<if test="null != selectBegin and null != pageSize ">
+			limit #{selectBegin},#{pageSize}
+		</if>
+	</select>
+	
+	<select id="getHosDocs" parameterType="java.util.Map" resultType="java.util.Map">
+		<include refid="select_query"/>
+		select doctor.name as name, doctor.id as id, doctor.dept_id as dept_id, doctor.expert as expert, 
+		doctor.img_path as img_path, doctor.docLevel as docLevel
+		from t_hospital hosp
+		inner join t_dept dept on hosp.id = dept.hospital_id
+		inner join t_doctor doctor on doctor.dept_id = dept.id
+		where hosp.id =#{hospId} and dept.id = #{deptId}
+	</select>
+	
+	<resultMap type="Doctor" id="DoctorMap">
+		<id column="DOCTOR_ID" property="id"/>
+		<result column="SUMMARY" property="summary" />
+		<result column="EXPERT" property="expert" />
+		<result column="IMG_PATH" property="img_path" />
+		<result column="USERNAME" property="username" />
+		<result column="PASSWORD" property="password" />
+		<result column="DOCTOR_NAME" property="name" />
+		<result column="REG_FEE" property="reg_fee" />
+		<association property="dept" resultMap="dao.DeptMapper.DeptMap" column="DEPT_ID" javaType="Dept"></association>
+		<association property="docLevel" resultMap="dao.DocLevelMapper.DocLevelMap" column="LEVEL_ID" javaType="DocLevel"></association>
+	</resultMap>
+	
+	<!-- 医生表、科室表、医院表、职称表、医生标签表连表查询        根据医生的id查 -->
+	<resultMap type="Doctor" id="DoctorInfoMap">
+		<id column="id" property="id"/>
+			<result column="NAME" property="name"/>
+			<result column="SUMMURY" property="summury"/>
+			<result column="EXPERT" property="expert" />
+			<result column="IMG_PATH" property="img_path" />
+		<association property="dept" javaType="Dept" resultMap="DeptInfoMap"></association>
+		<association property="docLevel" javaType="DocLevel" resultMap="DocLevelInfoMap"></association>
+		<collection property="doctorLabels" ofType="DoctorLabel" resultMap="DoctorLabelInfoMap"></collection>
+	</resultMap>
+	<resultMap type="DoctorLabel" id="DoctorLabelInfoMap">
+		<result column="content" property="content"/>
+	</resultMap>
+	<resultMap type="DocLevel" id="DocLevelInfoMap">
+		<result column="L_NAME" property="name"/>
+	</resultMap>
+	<resultMap type="Dept" id="DeptInfoMap">
+		<result column="D_NAME" property="name"/>
+		<association property="hospital" javaType="Hospital" resultMap="HospitalInfoMap"></association>
+	</resultMap>
+	<resultMap type="Hospital" id="HospitalInfoMap">
+		<result column="H_NAME" property="name"/>
+	</resultMap>
+	<select id="findDoctorInfo" resultMap="DoctorInfoMap">
+	SELECT t_doctor.`id`,t_doctor.`name`,t_doctor.`summury`,t_doctor.`expert`,t_doctor.`img_path`,
+		t_level.`name` l_name,t_dept.`name` d_name,t_hospital.`name` h_name,t_lable.`content`
+FROM t_doctor
+	INNER JOIN t_doctor_label t_lable ON t_lable.`doctor_id`=t_doctor.`id`
+	INNER JOIN t_dept ON t_doctor.`dept_id`=t_dept.`id`
+	INNER JOIN t_dict_doc_level t_level ON t_doctor.`level_id`=t_level.`id`
+	INNER JOIN t_hospital ON t_dept.`hospital_id`=t_hospital.`id`
+	
+WHERE t_doctor.`id`=#{id}
+	</select>
+</mapper>
